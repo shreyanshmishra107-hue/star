@@ -30,7 +30,7 @@ video { width:100%; height:100%; background:#000; object-fit:contain; }
 #wm {
   position:fixed;
   top:12px;
-  right:12px;
+  right:06px;
   background:rgba(0,136,204,.18);
   border:1px solid rgba(0,136,204,.28);
   padding:6px 11px;
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if(!shaka.Player.isBrowserSupported()){ showError("Browser not supported"); return; }
 
   const tvgId = new URLSearchParams(location.search).get("tvid");
-  if(!tvgId){ showError("Use ?tvid=CHANNELID"); return; }
+  if(!tvgId){ showError("Use ?tvid=ss1hd"); return; }
 
   const COOKIE="__hdnea__=st=1772937957~exp=1773024357~acl=/*~hmac=d43c7771d4054af99c2353d4119214b32c022e716dd521e998090e86f694f134";
 
