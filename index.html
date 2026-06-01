@@ -1,242 +1,173 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jio Tv Player</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Offside Verse</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- Shaka Player -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js" crossorigin="anonymous"></script>
 
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { background:#000; height:100vh; width:100vw; overflow:hidden; font-family:system-ui; }
-
-.shaka-video-container { position:absolute; inset:0; width:100%; height:100%; }
-video { width:100%; height:100%; background:#000; object-fit:contain; }
-
-#errorMsg {
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  color:white;
-  background:rgba(255,0,0,0.3);
-  padding:20px;
-  border-radius:8px;
-  display:none;
+:root{
+  --blue1:#0b3b8c;
+  --blue2:#072b6a;
+  --bg:#0a1733;
+  --text:#ffffff;
+  --border:rgba(255,255,255,.15);
+  --shadow:rgba(0,0,0,.35);
 }
 
-#wm {
-  position:fixed;
-  top:12px;
-  left:06px;
-  background:rgba(0,136,204,.18);
-  border:1px solid rgba(0,136,204,.28);
-  padding:6px 11px;
-  border-radius:7px;
-  color:#fff;
-  font-size:12px;
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.bar{
+  max-width:980px;
+  margin:14px auto;
+  padding:0 12px;
+}
+
+.pill{
+  background:linear-gradient(90deg,var(--blue1),var(--blue2));
+  text-align:center;
+  padding:14px;
+  border-radius:14px;
+  font-weight:800;
+  box-shadow:0 8px 20px var(--shadow);
+  border:1px solid var(--border);
+}
+
+/* VIDEO */
+.panel{
+  margin:14px 0;
+  background:#000;
+  border-radius:10px;
+  overflow:hidden;
+  border:3px solid rgba(30,120,255,.25);
+  box-shadow:0 10px 26px var(--shadow);
+}
+
+.shaka-video{
+  width:100%;
+  aspect-ratio:16/9;
+  background:#000;
+}
+
+/* BUTTONS */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 22px;
+  border-radius:14px;
   font-weight:700;
+  color:#fff;
   text-decoration:none;
-  z-index:999;
+  background:transparent;
+  border:2px solid rgba(255,255,255,.85);
+  cursor:pointer;
 }
 
-/* Remove Shaka loading spinner */
-.shaka-spinner-container,
-.shaka-spinner,
-.shaka-spinner-svg,
-.shaka-loading-spinner,
-.shaka-buffering-spinner {
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
+.btn img{
+  width:20px;
+  height:20px;
+}
+
+.btn:active{
+  transform:translateY(1px);
+}
+
+.row{
+  display:flex;
+  justify-content:center;
+}
+
+/* ===== DUAL SECTIONS (LIKE IMAGE) ===== */
+.dual-sections{
+  display:flex;
+  gap:20px;
+  margin:16px 0;
+}
+
+.section{
+  flex:1;
+  background:linear-gradient(90deg,var(--blue1),var(--blue2));
+  border-radius:18px;
+  padding:22px;
+  text-align:center;
+  box-shadow:0 8px 20px var(--shadow);
+  border:1px solid var(--border);
+}
+
+.section h3{
+  margin:0 0 16px;
+  font-size:18px;
+  font-weight:800;
+}
+
+/* Mobile */
+@media(max-width:768px){
+  .dual-sections{
+    flex-direction:column;
+  }
 }
 </style>
 </head>
 
 <body>
-<a href="https://t.me/+7VkflslOE9s4YjQ9" target="_blank" id="wm">@OffsideVerse</a>
 
-<div class="shaka-video-container" data-shaka-player>
-  <video autoplay playsinline></video>
-</div>
+<div class="bar">
 
-<div id="errorMsg"></div>
+  <div class="pill">Offside Verse</div>
 
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-
-  shaka.polyfill.installAll();
-  if(!shaka.Player.isBrowserSupported()){ showError("Browser not supported"); return; }
-
-  const tvgId = new URLSearchParams(location.search).get("tvid");
-  if(!tvgId){ showError("Use ?tvid=ss1hd"); return; }
-
-  const COOKIE="__hdnea__=st=1772937957~exp=1773024357~acl=/*~hmac=d43c7771d4054af99c2353d4119214b32c022e716dd521e998090e86f694f134";
-
-  const channels = {
-    "ss1hd": {name:"Star Sports 1 HD", url:"https://jiotvpllive.cdn.jio.com/bpk-tv/Star_Sports_HD1_BTS/output/index.mpd", keyId:"965dc2ddb1d85138ad787999a7f30ca5", key:"859695076e67fe961836b564db6d689c"},
-    "ss1sd": {name:"Star Sports 1", url:"https://jiotvpllive.cdn.jio.com/bpk-tv/Star_Sports_1_BTS/output/index.mpd", keyId:"df20894ec30954d3b28097c138f4cfda", key:"ff9b6292b1cddbd11a046029cb314634"},
-    "ss1hinhd": {name:"Star Sports 1 Hindi HD", url:"https://jiotvpllive.cdn.jio.com/bpk-tv/Star_Sports_HD1_Hindi_BTS/output/index.mpd", keyId:"400131994b445d8c8817202248760fda", key:"2d56cb6f07a75b9aff165d534ae2bfc4"},
-    "ss1hinsd": {name:"Star Sports 1 Hindi", url:"https://jiotvpllive.cdn.jio.com/bpk-tv/Star_Sports_1_Hindi_BTS/output/index.mpd", keyId:"8ea9b607549252068e260a5f4d7dd321", key:"350c0aaffedf51cc1502e9543c7c885e"},
-    "ss2hd": {name:"Star Sports 2 HD", url:"https://jiotvpllive.cdn.jio.com/bpk-tv/Star_Sports_HD2_BTS/output/index.mpd", keyId:"9457eb90129456fa8ea95e10ba4ac51e", key:"e620a970cea474c491ac78ae71a4d764"},
-    "ss2sd": {name:"Star Sports 2", url:"https://jiotvpllive.cdn.jio.com/bpk-tv/Star_Sports_2_BTS/output/index.mpd", keyId:"fc3aafe80845584199a637249fad2ffa", key:"ca4474972fdb4bf8ecb164482853c692"}
-  };
-
-  if(!channels[tvgId]){ showError("Channel not found"); return; }
-  const ch = channels[tvgId];
-
-  document.title = ch.name;
-  const video = document.querySelector("video");
-  const player = new shaka.Player(video);
-
-  player.configure({drm:{clearKeys:{[ch.keyId]: ch.key}}});
-
-  player.getNetworkingEngine().registerRequestFilter((type, request) => {
-    request.headers["Referer"]="https://www.jiotv.com/";
-    request.headers["User-Agent"]="plaYtv/7.1.3";
-    request.headers["Cookie"]=COOKIE;
-    if(type===shaka.net.NetworkingEngine.RequestType.MANIFEST || type===shaka.net.NetworkingEngine.RequestType.SEGMENT){
-      if(!request.uris[0].includes("__hdnea__=")){
-        request.uris[0] += (request.uris[0].includes("?") ? "&" : "?") + COOKIE;
-      }
-    }
-  });
-
-  const ui = new shaka.ui.Overlay(player, document.querySelector(".shaka-video-container"), video);
-  ui.configure({controlPanelElements:["play_pause","time_and_duration","mute","volume","spacer","quality","fullscreen"]});
-
-  try {
-    await player.load(ch.url);
-    video.play();
-  } catch(e) {
-    showError("Stream failed");
-  }
-
-  function showError(msg){
-    const e=document.getElementById("errorMsg");
-    e.innerText = msg;
-    e.style.display = "block";
-  }
-
-});
-</script>
-<script>
-document.getElementById("closeButton").onclick = function(){
-  document.getElementById("telegramModal").classList.add("hidden");
-}
-</script>
-  <style>
-/* Modal */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  backdrop-filter: blur(6px);
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  animation: fadeIn .5s ease;
-}
-
-.modal.hidden { display: none !important; }
-
-.modal-content {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  padding: 30px 25px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  color: #f3f4f6;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  backdrop-filter: blur(12px);
-  transform: scale(.95);
-  animation: scaleIn .4s ease forwards;
-}
-
-.modal-content h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #facc15;
-  margin-bottom: 16px;
-}
-
-.modal-content p {
-  font-size: 16px;
-  color: #d1d5db;
-  margin-bottom: 24px;
-  line-height: 1.5;
-}
-
-.modal-content strong { color: #fff; }
-
-.modal-content .btn {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border: none;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: .3s;
-}
-
-#joinButton {
-  background: linear-gradient(to right,#3b82f6,#06b6d4);
-  color: #fff;
-  font-weight: 500;
-}
-
-#joinButton:hover {
-  background: linear-gradient(to right,#2563eb,#0891b2);
-  transform: scale(1.02);
-}
-
-#closeButton {
-  background: rgba(255,255,255,0.1);
-  color: #f3f4f6;
-}
-
-#closeButton:hover {
-  background: rgba(255,255,255,0.15);
-  transform: scale(1.02);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0 }
-  to { opacity: 1 }
-}
-
-@keyframes scaleIn {
-  to { transform: scale(1); opacity: 1 }
-}
-</style>
-
-<!-- Telegram Popup Modal -->
-<div id="telegramModal" class="modal">
-  <div class="modal-content">
-    <h2>Join Our Telegram</h2>
-    <p>Stay updated with the latest <strong>Live Match Links</strong> and updates. Click below to join our official Telegram channel.</p>
-
-    <a href="https://t.me/+7VkflslOE9s4YjQ9" target="_blank" style="text-decoration:none;">
-      <button id="joinButton" class="btn">Join Telegram</button>
-    </a>
-
-    <button id="closeButton" class="btn">Maybe Later</button>
+  <div class="panel">
+    <video id="video"
+      class="shaka-video"
+      data-shaka-player
+      autoplay
+      muted
+      playsinline
+      poster="https://ik.imagekit.io/offsideverse/ChatGPT%20Image%20Feb%206,%202026,%2008_57_27%20AM.png">
+    </video>
   </div>
-</div>
 
-<script>
-document.getElementById("closeButton").onclick = function(){
-  document.getElementById("telegramModal").classList.add("hidden");
-}
-</script>
-</body>
-</html>
+  <!-- SIDE BY SIDE SECTIONS -->
+  <div class="dual-sections">
+
+    <!-- TELEGRAM -->
+    <div class="section">
+      <h3>📣 Follow us for Updates!</h3>
+      <div class="row">
+        <a class="btn"
+           href="https://t.me/+7VkflslOE9s4YjQ9"
+           target="_blank"
+           rel="noopener">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/768px-Telegram_logo.svg.png">
+          Click Here To Join Telegram For More Links
+        </a>
+      </div>
+    </div>
+
+    <!-- SHARE -->
+    <div class="section">
+      <h3>Copy Link & Open in Chrome Browser Only</h3>
+      <div class="row">
+        <button class="btn"
+          onclick="navigator.share ? navigator.share({url: location.href}) : alert(location.href)">
+          Click Here To Share This Page Link ❤️
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
